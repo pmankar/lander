@@ -137,7 +137,7 @@
             if (p === undefined) p = 1;
             if (p > 1) p = 1;
             if (dircode === 38) {
-z                let tvx = Math.sin(indeg * ship.rot);
+                let tvx = Math.sin(indeg * ship.rot);
                 let tvy = Math.cos(indeg * ship.rot);
                 console.log(ship.rot, tvy, tvx);
                 ship.y -= ship.thrust.v * p * tvy;
