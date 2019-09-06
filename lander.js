@@ -46,7 +46,7 @@ var mtxtrot = svg.append("text")
 // create the ship
 var shp = svg.append("g");
 var timer = {id:null, active: false};
-d3.xml("models/lm_001.svg").then(function (d) {
+d3.xml("models/lm_002.svg").then(function (d) {
     shp.html(d3.select(d).select("#lm_bbox").node().innerHTML);
     ship.h = shp.node().getBoundingClientRect().height;
     ship.w = shp.node().getBoundingClientRect().width;
