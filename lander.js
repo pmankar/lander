@@ -4,7 +4,7 @@ var indeg = Math.PI / 180;
 var fps = 60;
 var ship = {
     x: width / 2,   // curr pos x
-    y: 220,     // curr pos y
+    y: 0,     // curr pos y
     vy: 0,  // vel in y dir
     vx: 0,  // vel in x dir
     ignited: false, // is engine ignited
@@ -46,26 +46,26 @@ var mtxtrot = metainfo.append("text")
     .attr("fill", "brown");
 
 var mtxttmr = metainfo.append("text")
-.attr("x", width/2.1)
-.attr("y", 50)
-.attr("fill", "black");
+    .attr("x", width / 2.1)
+    .attr("y", 50)
+    .attr("fill", "black");
 
 // create the ship
 var shp = svg.append("g");
-var timer = {id:null, active: false};
+var timer = { id: null, active: false };
 d3.xml("models/lm_001.svg").then(function (d) {
-    shp.html(d3.select(d).select("#lm_bbox").node().innerHTML);
+    shp.html(d3.select(d).select("#lm_bbox").node().outerHTML);
     ship.h = shp.node().getBoundingClientRect().height;
     ship.w = shp.node().getBoundingClientRect().width;
     toggleTimer();
 });
 
-function toggleTimer(){
+function toggleTimer() {
     mtxttmr.text("");
-    if(timer["active"]){
+    if (timer["active"]) {
         clearInterval(timer["id"]);
         mtxttmr.text("PAUSED");
-    }else{
+    } else {
         timer["id"] = setInterval(update, 1000 / fps); // fps
     }
     timer["active"] = !timer["active"];
@@ -101,9 +101,12 @@ function update() {
     ship.y += ship.vy;
     ship.x += ship.vx;
     ship.vy += G
-    shp.attr("transform", "translate( " + ship.x + "," + ship.y + " ) rotate(" + ship.rot + ", " + (ship.h / 2)+ ", " + (ship.w / 2) + ")");
+    shp.attr("transform", "translate( " + ship.x + "," + ship.y + " ) rotate(" + ship.rot + ", " + (ship.h / 2) + ", " + (ship.w / 2) + ")");
     bounding();
-    
+    if (ship.vy < 0) {
+        let sfactor = Math.min(Math.abs(ship.vy / ship.thrust.v), 4);
+        d3.select("#flame_thrust").attr("transform", "scale(" + sfactor + ")");
+    }
     // write meta info
     mtxtpos.text("x:" + ship.x.toFixed(1) + "   y:" + ship.y.toFixed(1));
     mtxtvel.text("vy:" + ship.vy.toFixed(2) + "   vx:" + ship.vx.toFixed(2));
@@ -115,13 +118,13 @@ function update() {
 d3.select("body")
     .on("keydown", function (f, w) {
         move(d3.event.keyCode);
-        if(d3.event.keyCode === 83) // for char S -- toggles the timer
+        if (d3.event.keyCode === 83 || d3.event.keyCode === 80 || d3.event.keyCode === 32) // for char S|P|<space> -- toggles the timer
             toggleTimer();
     });
 
 // move in a give dir, with p % of max thrust. default p = 1 = pmax
 function move(dircode, p) {
-    if(!timer["active"]) return;
+    if (!timer["active"]) return;
     var hr = { 37: "l", 38: "u", 39: "r" };
     direction = hr[dircode];
     if (p === undefined) p = 1;
@@ -129,7 +132,6 @@ function move(dircode, p) {
     if (dircode === 38) {
         let tvx = Math.sin(indeg * ship.rot);
         let tvy = Math.cos(indeg * ship.rot);
-        console.log(ship.rot, tvy, tvx);
         ship.y -= ship.thrust.v * p * tvy;
         ship.vy -= ship.thrust.v * p * tvy;
         ship.x += ship.thrust.v * p * tvx;

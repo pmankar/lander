@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<svg version="1.1" id="Capa_1" 
+	xmlns="http://www.w3.org/2000/svg" 
+	xmlns:xlink="http://www.w3.org/1999/xlink">
+	<g id="flame">
+		<g transform="scale(1)" opacity="0.8">
+			<path d="m 100 100 
+			a 50 50 0 0 0 10 72 
+			a 50 50 0 0 0 10 -72" fill="orange"/>
+			<path d="m 102 100 
+			a 50 50 0 0 0 8 50 
+			a 50 50 0 0 0 8 -50" fill="yellow"/>
+			<path d="m 104 100 
+			a 50 50 0 0 0 6 35
+			a 50 50 0 0 0 6 -35" fill="white"/>
+		</g>
+	</g>
+</svg>
