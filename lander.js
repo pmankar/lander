@@ -2,6 +2,7 @@ var height = 600, width = 800;
 var G = 0.020;
 var indeg = Math.PI / 180;
 var fps = 60;
+var timer = { id: null, active: false };
 var ship = {
     x: width / 2,   // curr pos x
     y: 0,     // curr pos y
@@ -16,50 +17,63 @@ var ship = {
     }
 };
 
-// main svg
-var svg = d3.select("body")
-    .append("svg")
-    .attr("height", height)
-    .attr("width", width)
-    .style("background", "#6395ec");
+var mtxtpos;
+var mtxtvel;
+var mtxttd;
+var mtxtrot;
+var txttmr;
+var shp;
+var flame_thrust;
 
-var metainfo = svg.append("g");
+// initialize scene
+(function init() {
+    // main svg
+    var svg = d3.select("body")
+        .append("svg")
+        .attr("height", height)
+        .attr("width", width)
+        .style("background", "#6395ec");
 
-var mtxtpos = metainfo.append("text")
-    .attr("x", 20)
-    .attr("y", 20)
-    .attr("fill", "brown");
+    var metainfo = svg.append("g");
 
-var mtxtvel = metainfo.append("text")
-    .attr("x", 20)
-    .attr("y", 50)
-    .attr("fill", "brown");
+    mtxtpos = metainfo.append("text")
+        .attr("x", 20)
+        .attr("y", 20)
+        .attr("fill", "brown");
 
-var mtxttd = metainfo.append("text")
-    .attr("x", 20)
-    .attr("y", 80)
-    .attr("fill", "brown");
+    mtxtvel = metainfo.append("text")
+        .attr("x", 20)
+        .attr("y", 50)
+        .attr("fill", "brown");
 
-var mtxtrot = metainfo.append("text")
-    .attr("x", 20)
-    .attr("y", 110)
-    .attr("fill", "brown");
+    mtxttd = metainfo.append("text")
+        .attr("x", 20)
+        .attr("y", 80)
+        .attr("fill", "brown");
 
-var mtxttmr = metainfo.append("text")
-    .attr("x", width / 2.1)
-    .attr("y", 50)
-    .attr("fill", "black");
+    mtxtrot = metainfo.append("text")
+        .attr("x", 20)
+        .attr("y", 110)
+        .attr("fill", "brown");
 
-// create the ship
-var shp = svg.append("g");
-var timer = { id: null, active: false };
-d3.xml("models/lm_001.svg").then(function (d) {
-    shp.html(d3.select(d).select("#lm_bbox").node().outerHTML);
-    ship.h = shp.node().getBoundingClientRect().height;
-    ship.w = shp.node().getBoundingClientRect().width;
-    toggleTimer();
-});
+    mtxttmr = metainfo.append("text")
+        .attr("x", width / 2.1)
+        .attr("y", 50)
+        .attr("fill", "black");
 
+    // create the ship
+    shp = svg.append("g");
+    
+    d3.xml("models/lm_002.svg").then(function (d) {
+        shp.html(d3.select(d).select("#lm_bbox").node().outerHTML);
+        ship.h = shp.node().getBoundingClientRect().height;
+        ship.w = shp.node().getBoundingClientRect().width;
+        toggleTimer();
+        flame_thrust = d3.select("#flame_thrust");
+    });
+})();
+
+// pause / play
 function toggleTimer() {
     mtxttmr.text("");
     if (timer["active"]) {
@@ -98,15 +112,13 @@ function bounding() {
 }
 // update lander position
 function update() {
+    ship.a = ship.vy;
     ship.y += ship.vy;
     ship.x += ship.vx;
     ship.vy += G
     shp.attr("transform", "translate( " + ship.x + "," + ship.y + " ) rotate(" + ship.rot + ", " + (ship.h / 2) + ", " + (ship.w / 2) + ")");
     bounding();
-    if (ship.vy < 0) {
-        let sfactor = Math.min(Math.abs(ship.vy / ship.thrust.v), 4);
-        d3.select("#flame_thrust").attr("transform", "scale(" + sfactor + ")");
-    }
+    
     // write meta info
     mtxtpos.text("x:" + ship.x.toFixed(1) + "   y:" + ship.y.toFixed(1));
     mtxtvel.text("vy:" + ship.vy.toFixed(2) + "   vx:" + ship.vx.toFixed(2));
@@ -120,6 +132,10 @@ d3.select("body")
         move(d3.event.keyCode);
         if (d3.event.keyCode === 83 || d3.event.keyCode === 80 || d3.event.keyCode === 32) // for char S|P|<space> -- toggles the timer
             toggleTimer();
+    })
+    .on("keyup", function(f, w){
+        if (!timer["active"]) return;
+        flame_thrust.transition().attr("transform", "scale(3,0)");
     });
 
 // move in a give dir, with p % of max thrust. default p = 1 = pmax
@@ -136,6 +152,7 @@ function move(dircode, p) {
         ship.vy -= ship.thrust.v * p * tvy;
         ship.x += ship.thrust.v * p * tvx;
         ship.vx += ship.thrust.v * p * tvx;
+        flame_thrust.transition().attr("transform", "scale(3,2.5)");
     } else {
         // rotation << 37 is -ve and 39 is +ve >>
         if (dircode === 37 || dircode === 39) {
